@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs';
 
-import prismadb from "@/lib/prismadb";
+import prismadb from '@/lib/prismadb';
 
 export async function POST(
     req: Request,
@@ -9,12 +9,13 @@ export async function POST(
 ) {
     try {
         const { userId } = auth();
+
         const body = await req.json();
 
         const { label, imageUrl } = body;
 
         if (!userId) {
-            return new NextResponse("Unauthenticated", { status: 401 });
+            return new NextResponse("Unauthenticated", { status: 403 });
         }
 
         if (!label) {
@@ -32,19 +33,19 @@ export async function POST(
         const storeByUserId = await prismadb.store.findFirst({
             where: {
                 id: params.storeId,
-                userId
+                userId,
             }
         });
 
         if (!storeByUserId) {
-            return new NextResponse("Unauthorized", { status: 403 });
+            return new NextResponse("Unauthorized", { status: 405 });
         }
 
         const billboard = await prismadb.billboard.create({
             data: {
                 label,
                 imageUrl,
-                storeId: params.storeId
+                storeId: params.storeId,
             }
         });
 
@@ -53,7 +54,7 @@ export async function POST(
         console.log('[BILLBOARDS_POST]', error);
         return new NextResponse("Internal error", { status: 500 });
     }
-}
+};
 
 export async function GET(
     req: Request,
@@ -75,4 +76,4 @@ export async function GET(
         console.log('[BILLBOARDS_GET]', error);
         return new NextResponse("Internal error", { status: 500 });
     }
-}
+};
